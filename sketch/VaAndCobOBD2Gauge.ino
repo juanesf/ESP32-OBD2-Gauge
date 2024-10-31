@@ -55,6 +55,8 @@ Preferences pref;         //create preference
 #define LDR_PIN 34       //LDR sensor
 #define BUZZER_PIN 26    //speaker
 #define SELECTOR_PIN 27  //push button
+// Define el pin FAN_RELAY
+#define FAN_RELAY 22
 // setting PWM properties
 #define backlightChannel 0
 #define buzzerChannel 2
@@ -282,9 +284,11 @@ void setup() {
   pinMode(LED_RED_PIN, OUTPUT);         //red
   pinMode(LED_GREEN_PIN, OUTPUT);       //green
   pinMode(LED_BLUE_PIN, OUTPUT);        //blue
+  pinMode(FAN_RELAY, OUTPUT);           //fan relay
   digitalWrite(LED_RED_PIN, LOW);       //on
   digitalWrite(LED_GREEN_PIN, HIGH);    //off
   digitalWrite(LED_BLUE_PIN, HIGH);     //off
+  digitalWrite(FAN_RELAY, LOW);         // Asegurarse de que el relé esté apagado al inicio
   //pwm setup
   ledcSetup(buzzerChannel, 1500, 10);        //buzzer 10 bit
   ledcSetup(backlightChannel, 12000, 8);     //backlight 8 bit
@@ -428,8 +432,27 @@ recent_client_addr : {0x00,0x00,0x00,0x00,0x00,0x00} array of bytes[6]
   //----------------------
 }  //setup
 
+int getECT() {
+  for (uint8_t i = 0; i < maxpidIndex; i++) {
+    if (pidConfig[i][0] == "ECT") {
+      return 90; // Valor de ejemplo
+    }
+  }
+  return -1; // Retorna un valor de error si no se encuentra el ECT
+}
+
 /*###################################*/
 void loop() {
+  // Leer el valor de ECT
+  int ectValue = getECT();
+
+  // Control del relé basado en el valor de ECT
+  if (ectValue >= 85) {
+    digitalWrite(FAN_RELAY, HIGH); // Activar el relé
+  } else if (ectValue <= 80) {
+    digitalWrite(FAN_RELAY, LOW); // Desactivar el relé
+  }
+
   //SCAN BUTON (button press HOLD to config menu)
   if (digitalRead(SELECTOR_PIN) == LOW) {  //button pressed
     if (!press) {
