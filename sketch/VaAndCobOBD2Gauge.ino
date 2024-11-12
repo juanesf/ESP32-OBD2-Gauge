@@ -122,9 +122,9 @@ set up meter here which pid to use on each cell
 const uint8_t pidInCell[8][7] = {
   //[layout][cellNo]
   //the last cell must be 3 (engine speed) to check engine off
-  { 0, 2, 3, 1, 0, 3, 4 },  //layout 0 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
-  { 0, 2, 3, 1, 5, 6, 4 },  //layout 1 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
-  { 0, 2, 3, 1, 5, 6, 4 },  //layout 2 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
+  { 0, 2, 3, 1, 0, 3, 4 },  //layout 0 -> 6 cell {load,map,engspd,coolant,load,engspd,pcmvolt}
+  { 0, 2, 3, 1, 5, 6, 4 },  //layout 1 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt}
+  { 0, 2, 3, 1, 5, 6, 4 },  //layout 2 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt}
   { 1, 5, 6, 3, 2, 4, 4 },  //layout 3 -> 5 cell {cooland,oil,tft,map,pcmvolt,pcmvolt}
   { 2, 1, 5, 6, 4, 0, 4 },  //layout 4 -> 5 cell {MAP,coolant,oiltemp,tft,pcmvolt,load,pcmvolt}
   { 2, 0, 1, 5, 6, 4, 4 },  //layout 5 -> 5 cell {MAP,engload,coolant,oiltemp,tft,engload,rpm}
