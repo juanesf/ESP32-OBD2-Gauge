@@ -33,7 +33,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-uint8_t temprature_sens_read();  //declare intermal temperature sensor functio
+uint8_t temprature_sens_read();  //declare intermal temperature sensor function
 
 //Macro
 #define array_length(x) (sizeof(x) / sizeof(x[0]))  //macro to calculate array length
@@ -43,7 +43,6 @@ uint8_t temprature_sens_read();  //declare intermal temperature sensor functio
 Preferences pref;         //create preference
 #include <BluetoothSerial.h>
 #include <TFT_eSPI.h>  //Hardware-specific library
-
 
 //Pin configuration
 #define SCA_PIN 21  //not used same pin with TFT_BL
@@ -64,7 +63,6 @@ Preferences pref;         //create preference
 //DISPLAY
 TFT_eSPI tft = TFT_eSPI();
 #define TFT_GREY 0x5AEB
-
 
 //ELM327 init https://www.elmelectronics.com/wp-content/uploads/2016/07/ELM327DS.pdf
 const uint8_t elm327InitCount = 8;
@@ -88,7 +86,7 @@ const String pidConfig[7][9] = {
   { "ENG Load", "%", "0104", "2", "0", "100", "0", "0", "80" },      //0 = 0104
   { "ECT", "`C", "0105", "1", "0", "120", "3", "0", "99" },          //1 = 0105
   { "MAP", "psi", "010B", "0", "0", "40", "0", "1", "35" },          //2 = 010B
-  { "ENG SPD", "rpm", "010C", "3", "0", "5000", "0", "0", "4000" },  //3 = 010C
+  { "ENG SPD", "rpm", "010C", "3", "0", "6000", "0", "0", "4000" },  //3 = 010C
   { "PCM Volt", "volt", "0142", "4", "0", "16", "1", "1", "15" },    //4 = 0142
 #ifdef FORD_T5
   { "IAT", "`C", "010F", "1", "0", "120", "3", "0", "99" },  //5 = 015C
@@ -100,12 +98,11 @@ const String pidConfig[7][9] = {
 #else
   { "Trans Temp", "`C", "221E1C", "5", "0", "120", "3", "1", "99" }  //6 = 221E1C for FORD T6+
 #endif
-
 };
 
 //barometric pressure "0133"  turbo boost = map - bp;
 //hold warning value
-String warningValue[7] = { "80", "99", "35", "4000", "15", "99", "99" };
+String warningValue[7] = { "85", "99", "35", "5000", "15", "99", "99" };
 
 /*  User configuration here to change display 
       layout 0      layout 1       layout 2     layout 3      layout 4     layout 5
@@ -125,7 +122,7 @@ set up meter here which pid to use on each cell
 const uint8_t pidInCell[8][7] = {
   //[layout][cellNo]
   //the last cell must be 3 (engine speed) to check engine off
-  { 0, 2, 3, 1, 5, 6, 4 },  //layout 0 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
+  { 0, 2, 3, 1, 0, 3, 4 },  //layout 0 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
   { 0, 2, 3, 1, 5, 6, 4 },  //layout 1 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
   { 0, 2, 3, 1, 5, 6, 4 },  //layout 2 -> 6 cell {load,map,engspd,coolant,oil,tft,pcmvolt
   { 1, 5, 6, 3, 2, 4, 4 },  //layout 3 -> 5 cell {cooland,oil,tft,map,pcmvolt,pcmvolt}
@@ -134,8 +131,8 @@ const uint8_t pidInCell[8][7] = {
   { 1, 5, 6, 4, 0, 3, 4 },  //layout 6 -> 4 cell {coolant,oiltemp,tft,pcmvolt,map,endspd,pcmvolt}
   { 3, 2, 0, 4, 1, 5, 4 },  //layout 7 -> 4 cell {engspd,map,engload,pcmvolt,coolant,oil,pcmvolt}
 };
-// User configuration here to change display  >
 
+// User configuration here to change display  >
 /*---------------------------*/
 //if NO DATA value will set to 0 to skip reading
 uint8_t layout = 0;                                   //pidInCelltype 0-4 EEPROM 0x00
@@ -175,9 +172,9 @@ String deviceName[8] = { "", "", "", "", "", "", "", "" };                  //di
 String deviceAddr[8] = { "", "", "", "", "", "", "", "" };                  //discover BT addr
 uint8_t btDeviceCount = 0;                                                  //discovered bluetooth devices counter
 #define BT_DISCOVER_TIME 5000                                               //bluetooth discoery time
-esp_bd_addr_t client_addr = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };         //obdII mac addr
-esp_bd_addr_t recent_client_addr = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };  //keep last btaddr in RTC memory
-const String client_name = "OBDII";                                         //adaptor name to search
+esp_bd_addr_t client_addr = { 0x00, 0x1d, 0xa5, 0x68, 0x98, 0x8b };         //obdII mac addr
+esp_bd_addr_t recent_client_addr = { 0x00, 0x1d, 0xa5, 0x68, 0x98, 0x8b };  //keep last btaddr in RTC memory
+const String client_name = "";                                         //adaptor name to search
 esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;                                  // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
 esp_spp_role_t role = ESP_SPP_ROLE_SLAVE;                                   // or ESP_SPP_ROLE_MASTER
 bool foundOBD2 = false;
@@ -220,9 +217,9 @@ void checkCPUTemp() {  //temperature can read only when BT or Wifi Connected
       tft.fillScreen(TFT_BLACK);
       tft.writecommand(0x10);  //TFT sleep
       //enter deep sleep
-      esp_sleep_enable_timer_wakeup(SLEEP_DURATION);   //sleep timer 3 min
-      esp_sleep_enable_ext0_wakeup(GPIO_NUM_27, LOW);  //wake when button pressed
-      esp_deep_sleep_start();                          //sleep shutdown backlight auto off with esp32
+      //esp_sleep_enable_timer_wakeup(SLEEP_DURATION);   //sleep timer 3 min
+      //esp_sleep_enable_ext0_wakeup(GPIO_NUM_27, LOW);  //wake when button pressed
+      //esp_deep_sleep_start();                          //sleep shutdown backlight auto off with esp32
     }                                                  //if temp_overheat_coun
   }                                                    //if temp_read_delay
 }  //check CPU Temp
@@ -293,7 +290,6 @@ void setup() {
   ledcSetup(buzzerChannel, 1500, 10);        //buzzer 10 bit
   ledcSetup(backlightChannel, 12000, 8);     //backlight 8 bit
   ledcAttachPin(BUZZER_PIN, buzzerChannel);  //attach buzzer
-
   //init communication
   Serial.begin(115200);
   //memory check
@@ -307,25 +303,19 @@ void setup() {
   Serial.println(F("<<  Va&Cob OBDII Gauge  >>"));
   Serial.print(F("by Ratthanin W. BUILD -> "));
   Serial.println(compile_date);
-
-
-
   //init TFT display
   tft.init();
-  tft.setRotation(1);  //landcape
-                       // Start the SPI for the touchscreen and init the touchscreen
+  tft.setRotation(1); //landcape
+                      // Start the SPI for the touchscreen and init the touchscreen
   touchscreenSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
   ts.begin(touchscreenSPI);
   ts.setRotation(1);
-
   touch_calibrate();  //hold button at start to calibrate touch
-  //testTouch();//test touchscreen
-
+  //testTouch();      //test touchscreen
   tft.setSwapBytes(true);  //to display correct image color
   show_spiffs_jpeg_image("/vaandcob.jpg", 0, 0);// display logo image
   delay(3000);
-
-  //backlight ledcAttachPin must be set after tft.init()
+                      //backlight ledcAttachPin must be set after tft.init()
   ledcAttachPin(TFT_BL, backlightChannel);  //attach backlight
   for (uint8_t i = 255; i > 0; i--) {       //fading effect
     ledcWrite(backlightChannel, i);         //full bright
@@ -342,8 +332,7 @@ void setup() {
   String txt = " BUILD : " + compile_date;
   tft.setTextColor(TFT_WHITE, TFT_BLUE);
   tft.drawString(txt, 0, 26, 2);
-
-  // checkGenuine();//check guniune
+  // checkGenuine();                        //check guniune
   //init variable
   pref.begin("setting", false);
   /* Create a namespace called "setting" with read/write mode
@@ -367,8 +356,6 @@ recent_client_addr : {0x00,0x00,0x00,0x00,0x00,0x00} array of bytes[6]
   }
   pref.getBytes("recent_client", recent_client_addr, pref.getBytesLength("recent_client"));  //read last bt address
   ecu_off_volt = pref.getFloat("ecu_off_volt", factoryECUOff);                               //read ecu 0ff voltage
-
-
   //start bluetooth
   if (!BTSerial.begin("Va&Cob OBDII Gauge", true)) {
     Serial.println(F("Bluetooth..error!"));
@@ -382,7 +369,6 @@ recent_client_addr : {0x00,0x00,0x00,0x00,0x00,0x00} array of bytes[6]
 #ifdef SKIP_CONNECTION
   foundOBD2 = true;
 #endif
-
   //Connect to ELM327
   connectLastOBDII();   //try connect last BT
   while (!foundOBD2) {  //not success try scan and connect another OBD2
@@ -400,7 +386,6 @@ recent_client_addr : {0x00,0x00,0x00,0x00,0x00,0x00} array of bytes[6]
       delay(200);                              //delay avoid bounce
     }
   }
-
   //Initialize ELM327
   Terminal("Initializing...", 0, 48, 320, 191);
   bt_message = "";
@@ -425,13 +410,11 @@ recent_client_addr : {0x00,0x00,0x00,0x00,0x00,0x00} array of bytes[6]
       }
     }  //while
   }    //for
-
   initScreen();
   beepbeep();
   prompt = true;
   //----------------------
 }  //setup
-
 int getECT() {
   for (uint8_t i = 0; i < maxpidIndex; i++) {
     if (pidConfig[i][0] == "ECT") {
@@ -440,19 +423,25 @@ int getECT() {
   }
   return -1; // Retorna un valor de error si no se encuentra el ECT
 }
-
 /*###################################*/
 void loop() {
   // Leer el valor de ECT
   int ectValue = getECT();
-
   // Control del relé basado en el valor de ECT
   if (ectValue >= 85) {
     digitalWrite(FAN_RELAY, HIGH); // Activar el relé
   } else if (ectValue <= 80) {
     digitalWrite(FAN_RELAY, LOW); // Desactivar el relé
   }
-
+  // Activar el LED rojo de forma intermitente si ectValue es mayor a 90
+    if (ectValue > 90) {
+        digitalWrite(LED_RED_PIN, HIGH); // Encender el LED rojo
+        delay(500); // Esperar 500 ms
+        digitalWrite(LED_RED_PIN, LOW); // Apagar el LED rojo
+        delay(500); // Esperar otros 500 ms
+    } else {
+        digitalWrite(LED_RED_PIN, LOW); // Asegurarse de que el LED rojo esté apagado
+    }
   //SCAN BUTON (button press HOLD to config menu)
   if (digitalRead(SELECTOR_PIN) == LOW) {  //button pressed
     if (!press) {
@@ -485,9 +474,7 @@ void loop() {
       press = false;               //reset flag
       prompt = true;               //to trig reading elm again
       delay(200);                  //delay avoid bounce
-
     }  //if press
-
   }  //else digitalRead
      //----------------------
      //BLUETOOTH read
@@ -516,7 +503,6 @@ void loop() {
       se_message.concat(incomingChar);
       //Serial.print(incomingChar,HEX);
     } else {
-
       if (se_message != "") {
 #ifdef TERMINAL
         Terminal(se_message, 0, 48, 320, 191);  //display terminal
@@ -525,10 +511,8 @@ void loop() {
         se_message = "";
         Serial.flush();
       }  //if se_message
-
     }  //else if incomingChar
   }    //if Serial.available
-
   //Send another PID to elm327
   if (prompt) {      //> ELM327 ready! -> request next PID
     prompt = false;  //no prompt from ELM327
@@ -558,8 +542,6 @@ void loop() {
       prompt = true;
       skip = true;
     }  //else
-
   }  //if prompt
-
   /*------------------*/
 }  // loop
